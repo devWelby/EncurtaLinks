@@ -18,6 +18,7 @@ playwright/.cache/
 .local-db/
 .e2e-db/
 .test-db/
+.restore-drill-db/
 *.dump
 *.sql.gz
 *.backup

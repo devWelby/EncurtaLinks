@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', '.local-dist/**', 'node_modules/**', '.netlify/**', 'coverage/**', 'test-results/**', 'playwright-report/**', '.test-db/**', '.e2e-db/**', '.local-db/**'],
+    ignores: ['dist/**', '.local-dist/**', 'node_modules/**', '.netlify/**', 'coverage/**', 'test-results/**', 'playwright-report/**', '.test-db/**', '.e2e-db/**', '.local-db/**', '.restore-drill-db/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
