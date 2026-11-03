@@ -1,0 +1,103 @@
+# Integração contínua do EncurtaLinks.
+#
+# Segurança do workflow:
+#  - permissões mínimas (somente leitura do conteúdo do repositório);
+#  - nenhuma ação de terceiros além das oficiais "actions/*", todas fixadas
+#    por SHA de commit (comentário indica a versão);
+#  - sem pull_request_target, sem secrets: PRs de forks rodam sem acesso a nada;
+#  - banco PostgreSQL descartável no próprio runner (nunca o de produção);
+#  - nenhum anúncio real: os testes E2E usam anúncios simulados locais e o
+#    navegador só resolve hosts locais.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, tipos, testes, build e E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17.10-bookworm@sha256:9b18b78397054fce88a9552e9d5a3ad5bb7fd258c5b3cc1c5028e46373d6ea8f
+        env:
+          POSTGRES_PASSWORD: postgres-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      CI: 'true'
+      TEST_DATABASE_URL: postgres://postgres:postgres-ci-only@localhost:5432/encurtalinks_test
+      E2E_DATABASE_URL: postgres://postgres:postgres-ci-only@localhost:5432/encurtalinks_e2e
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Dependências (lockfile)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Testes unitários e de integração (PostgreSQL real)
+        run: npm test
+
+      - name: Build dos dois sites
+        run: npm run build
+
+      - name: Segredos no build publicado
+        run: npm run check:secrets
+
+      - name: Navegador dos testes E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Testes E2E (Playwright)
+        run: npm run test:e2e
+
+      - name: Relatório do Playwright (somente em falha)
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Ferramentas cliente do PostgreSQL 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq --no-install-recommends postgresql-client-17
+
+      - name: Ensaio de backup e restauração (isolado)
+        run: npm run db:restore-drill
+        env:
+          PG_BIN_DIR: /usr/lib/postgresql/17/bin
+          RESTORE_DRILL_DATABASE_URL: postgres://postgres:postgres-ci-only@localhost:5432/postgres
