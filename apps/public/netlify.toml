@@ -8,7 +8,7 @@
 # por contexto; funções NÃO leem variáveis declaradas neste arquivo).
 
 [build]
-  command = "npm run build:public"
+  command = "npm run build:public && npm run check:secrets"
   publish = "dist/public"
   # Pula o build quando nada relevante mudou (cada deploy de produção consome créditos).
   # No primeiro build (sem cache) CACHED_COMMIT_REF = COMMIT_REF e o build sempre acontece.
@@ -26,15 +26,15 @@
 # Produção: aplica as migrações antes do build. Se a migração falhar, o deploy
 # não é publicado e a versão anterior continua no ar.
 [context.production]
-  command = "npm run db:migrate && npm run build:public"
+  command = "npm run db:migrate && npm run build:public && npm run check:secrets"
 
 # Deploy previews e branch deploys: somente build, sem migração. Esses contextos
 # não devem receber DATABASE_URL de produção (veja docs/deploy.md).
 [context.deploy-preview]
-  command = "npm run build:public"
+  command = "npm run build:public && npm run check:secrets"
 
 [context.branch-deploy]
-  command = "npm run build:public"
+  command = "npm run build:public && npm run check:secrets"
 
 # ---------------------------------------------------------------------------
 # Rotas. Funções com config.path (/api/links, /api/reports, /api/legal/:kind,

@@ -7,7 +7,7 @@
 # Recomendado: desativar Deploy Previews e Branch deploys neste site (docs/deploy.md).
 
 [build]
-  command = "npm run build:admin"
+  command = "npm run build:admin && npm run check:secrets"
   publish = "dist/admin"
   ignore = 'test "$CACHED_COMMIT_REF" != "$COMMIT_REF" && git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- apps/admin src db scripts package.json package-lock.json .nvmrc tsconfig.base.json tsconfig.json'
 
@@ -22,13 +22,13 @@
 # As migrações são idempotentes e serializadas por advisory lock; rodar nos dois
 # sites garante que cada um publica com o esquema de que precisa.
 [context.production]
-  command = "npm run db:migrate && npm run build:admin"
+  command = "npm run db:migrate && npm run build:admin && npm run check:secrets"
 
 [context.deploy-preview]
-  command = "npm run build:admin"
+  command = "npm run build:admin && npm run check:secrets"
 
 [context.branch-deploy]
-  command = "npm run build:admin"
+  command = "npm run build:admin && npm run check:secrets"
 
 # ---------------------------------------------------------------------------
 # Rotas. Funções com config.path (/api/admin/*, /auth/github/start,
