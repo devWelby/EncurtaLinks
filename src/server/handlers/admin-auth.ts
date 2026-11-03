@@ -143,7 +143,17 @@ export async function handleAuthCallback(req: Request, ctx: RequestContext, deps
       );
     } catch (error) {
       const code = error instanceof OAuthCallbackError ? error.code : 'falha';
-      logger.warn('admin_login_failed', { requestId: ctx.requestId, reason: code });
+      const returned = new URL(req.url).searchParams;
+      logger.warn('admin_login_failed', {
+        requestId: ctx.requestId,
+        reason: code,
+        statePresent: returned.has('state'),
+        stateMatches: returned.get('state') === state,
+        stateCount: returned.getAll('state').length,
+        issuerPresent: returned.has('iss'),
+        issuerMatches: returned.get('iss') === 'https://github.com',
+        providerError: returned.has('error'),
+      });
       return loginRedirect(deps, 'falha_no_login');
     }
 
