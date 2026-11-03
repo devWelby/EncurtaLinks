@@ -1,0 +1,5 @@
+# EncurtaLinks — não há listagem pública de links.
+User-agent: *
+Disallow: /s/
+Disallow: /api/
+Disallow: /consent
