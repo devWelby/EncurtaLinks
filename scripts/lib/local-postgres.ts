@@ -6,7 +6,7 @@
  * estiver definida, usa esse servidor externo (por exemplo, o serviço
  * PostgreSQL do GitHub Actions) e não inicia nenhum processo local.
  */
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import pg from 'pg';
 
@@ -50,6 +50,8 @@ export async function startLocalPostgres(options: LocalPostgresOptions): Promise
 
   const { default: EmbeddedPostgres } = await import('embedded-postgres');
   const dataDir = resolve(process.cwd(), options.dataDir);
+  // Bancos descartáveis começam sempre do zero (inclusive após encerramento forçado).
+  if (!options.persistent) rmSync(dataDir, { recursive: true, force: true });
   mkdirSync(dataDir, { recursive: true });
   const password = 'local-dev-only';
   const server = new EmbeddedPostgres({

@@ -2,6 +2,7 @@
 node_modules/
 
 # Saídas de build
+.local-dist/
 dist/
 .netlify/
 *.tsbuildinfo
