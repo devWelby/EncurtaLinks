@@ -41,11 +41,16 @@ export function SettingsPage(): ReactNode {
   }, [api]);
 
   async function toggle(key: keyof AdminSettings, value: boolean): Promise<void> {
+    // Atualização otimista: a caixa reflete o clique na hora e volta atrás se o servidor recusar.
+    const previous = settings;
+    setSettings((current) => (current === null ? current : { ...current, [key]: value }));
+    setMessage(null);
     const result = await api<AdminSettings>('settings', { [key]: value });
     if (result.ok) {
       setSettings(result.data);
       setMessage({ kind: 'success', text: 'Configuração salva.' });
     } else {
+      setSettings(previous);
       setMessage({ kind: 'error', text: result.message });
     }
   }
