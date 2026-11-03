@@ -1,0 +1,109 @@
+# EncurtaLinks — PAINEL ADMINISTRATIVO (site Netlify separado, sem anúncios).
+#
+# Configuração no Netlify (segundo site, ligado ao MESMO repositório):
+#   Base directory:    (vazio = raiz do repositório)
+#   Package directory: apps/admin
+# Todos os caminhos abaixo são relativos à raiz do repositório (base directory).
+# Recomendado: desativar Deploy Previews e Branch deploys neste site (docs/deploy.md).
+
+[build]
+  command = "npm run build:admin"
+  publish = "dist/admin"
+  ignore = 'test "$CACHED_COMMIT_REF" != "$COMMIT_REF" && git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- apps/admin src db scripts package.json package-lock.json .nvmrc tsconfig.base.json tsconfig.json'
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "apps/admin/netlify/functions"
+  node_bundler = "esbuild"
+  ignored_node_modules = ["pg-native"]
+
+# As migrações são idempotentes e serializadas por advisory lock; rodar nos dois
+# sites garante que cada um publica com o esquema de que precisa.
+[context.production]
+  command = "npm run db:migrate && npm run build:admin"
+
+[context.deploy-preview]
+  command = "npm run build:admin"
+
+[context.branch-deploy]
+  command = "npm run build:admin"
+
+# ---------------------------------------------------------------------------
+# Rotas. Funções com config.path (/api/admin/*, /auth/github/start,
+# /auth/github/callback, /auth/logout) têm prioridade sobre estas regras.
+# ---------------------------------------------------------------------------
+
+[[redirects]]
+  from = "/links"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/denuncias"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/dominios"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/configuracoes"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/documentos"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/auditoria"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/api-404.json"
+  status = 404
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# ---------------------------------------------------------------------------
+# Cabeçalhos dos arquivos estáticos do painel: CSP estrita, nenhum script de
+# terceiros, sem enquadramento, sem indexação.
+# ---------------------------------------------------------------------------
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
+    X-Robots-Tag = "noindex, nofollow"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
+    Strict-Transport-Security = "max-age=31536000"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/api-404.json"
+  [headers.values]
+    Cache-Control = "no-store"
