@@ -109,7 +109,7 @@ function renderAdArea(ads: AdArea): SafeHtml {
       return html`<aside class="ad-area" aria-label="Publicidade">
 <p class="ad-label">Publicidade</p>
 <div class="consent">
-<p>Os anúncios ajudam a manter o ${APP_NAME} gratuito. Você permite exibir anúncios do Adsterra nesta página? O provedor de anúncios pode usar cookies e tratar dados conforme a <a href="https://adsterra.com/privacy-policy-managed/" rel="noopener noreferrer">política dele</a>.</p>
+<p>Os anúncios ajudam a manter o ${APP_NAME} gratuito. Você permite exibir anúncios do Adsterra nesta página? O provedor de anúncios pode usar cookies e tratar dados conforme a política de privacidade dele. Saiba mais na nossa <a href="/privacidade">Política de Privacidade</a>.</p>
 <form method="post" action="/consent" class="consent-actions">
 <input type="hidden" name="return" value="${ads.returnPath}">
 <button class="button button-secondary" type="submit" name="choice" value="granted">Permitir anúncios</button>

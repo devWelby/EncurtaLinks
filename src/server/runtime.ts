@@ -98,3 +98,11 @@ export function resetRuntimeCaches(): void {
   publicCache = null;
   adminCache = null;
 }
+
+/** Encerra os pools e limpa os caches (emulador local: simula um novo deploy ou encerra o processo). */
+export async function shutdownRuntime(): Promise<void> {
+  resetRuntimeCaches();
+  const pools = [...databases.values()];
+  databases.clear();
+  await Promise.allSettled(pools.map((db) => db.end()));
+}

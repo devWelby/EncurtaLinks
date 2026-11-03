@@ -32,7 +32,8 @@ export function assertAdminHost(req: Request, deps: AdminDeps): void {
 
 function isAllowed(deps: AdminDeps, githubId: number): boolean {
   const github = deps.config.github;
-  if (github === null) return !deps.config.isProduction; // sem GitHub configurado: só sessões locais de desenvolvimento
+  // Sem GitHub configurado: aceita apenas sessões do ambiente local de desenvolvimento/testes.
+  if (github === null) return deps.config.allowTestModes;
   return github.allowedUserIds.has(githubId);
 }
 
