@@ -37,6 +37,9 @@ const db = createDatabase({
 
 try {
   const report = await runMigrations(db, resolve(import.meta.dirname, '..', 'db', 'migrations'));
+  if (report.unknownApplied.length > 0) {
+    console.warn(`[migrate] Aviso: o banco já tem migrações mais novas que este código (${report.unknownApplied.join(', ')}). Esperado após rollback do código.`);
+  }
   if (report.applied.length === 0) {
     console.log(`[migrate] Banco atualizado (${report.alreadyApplied.length} migração(ões) já aplicada(s)).`);
   } else {

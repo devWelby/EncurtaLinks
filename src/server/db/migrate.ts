@@ -37,6 +37,12 @@ export async function loadMigrations(directory: string): Promise<MigrationFile[]
 export interface MigrationReport {
   applied: string[];
   alreadyApplied: string[];
+  /**
+   * Migrações presentes no banco e ausentes neste código (ex.: rollback do
+   * código para uma versão anterior). Não é erro: as migrações devem ser
+   * compatíveis com a versão anterior do código (padrão expandir/contrair).
+   */
+  unknownApplied: string[];
 }
 
 /**
@@ -63,13 +69,18 @@ export async function runMigrations(db: Database, directory: string): Promise<Mi
     );
     const applied = new Map(rows.map((row) => [row.version, row.checksum]));
     const known = new Set(migrations.map((m) => m.version));
-    for (const version of applied.keys()) {
-      if (!known.has(version)) {
-        throw new Error(`O banco tem a migração ${version}, que não existe neste código. Atualize o código antes de migrar.`);
-      }
+    const unknownApplied = [...applied.keys()].filter((version) => !known.has(version));
+    const newestKnown = migrations.at(-1)?.version ?? '';
+    const pending = migrations.filter((m) => !applied.has(m.version));
+    if (unknownApplied.length > 0 && pending.length > 0) {
+      // Código antigo com migração pendente num banco mais novo: estado ambíguo, não aplica nada.
+      throw new Error(`O banco tem migrações mais novas (${unknownApplied.join(', ')}) e este código tem pendentes. Nada foi alterado.`);
+    }
+    if (unknownApplied.some((version) => version < newestKnown)) {
+      throw new Error('O histórico de migrações do banco diverge deste código. Nada foi alterado.');
     }
 
-    const report: MigrationReport = { applied: [], alreadyApplied: [] };
+    const report: MigrationReport = { applied: [], alreadyApplied: [], unknownApplied };
     for (const migration of migrations) {
       const existing = applied.get(migration.version);
       if (existing !== undefined) {
