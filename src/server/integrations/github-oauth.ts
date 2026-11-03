@@ -11,7 +11,9 @@ import { z } from 'zod';
  */
 
 export const GITHUB_AS: oauth.AuthorizationServer = {
-  issuer: 'https://github.com',
+  // Metadados oficiais: https://github.com/.well-known/oauth-authorization-server/login/oauth
+  issuer: 'https://github.com/login/oauth',
+  authorization_response_iss_parameter_supported: true,
   authorization_endpoint: 'https://github.com/login/oauth/authorize',
   token_endpoint: 'https://github.com/login/oauth/access_token',
 };

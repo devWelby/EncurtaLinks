@@ -3,7 +3,7 @@ import { writeAudit } from '../domain/audit.ts';
 import { Errors, HttpError } from '../http/errors.ts';
 import { parseCookies, serializeCookie } from '../http/request.ts';
 import { errorJson, noContent, redirectResponse } from '../http/response.ts';
-import { completeAuthorization, createAuthorizationRequest, OAuthCallbackError } from '../integrations/github-oauth.ts';
+import { completeAuthorization, createAuthorizationRequest, GITHUB_AS, OAuthCallbackError } from '../integrations/github-oauth.ts';
 import { errorKind, logger } from '../logger.ts';
 import { safeEqual } from '../security/crypto.ts';
 import { checkRateLimits } from '../security/rate-limit.ts';
@@ -151,7 +151,7 @@ export async function handleAuthCallback(req: Request, ctx: RequestContext, deps
         stateMatches: returned.get('state') === state,
         stateCount: returned.getAll('state').length,
         issuerPresent: returned.has('iss'),
-        issuerMatches: returned.get('iss') === 'https://github.com',
+        issuerMatches: returned.get('iss') === GITHUB_AS.issuer,
         providerError: returned.has('error'),
       });
       return loginRedirect(deps, 'falha_no_login');

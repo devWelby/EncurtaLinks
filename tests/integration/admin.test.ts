@@ -326,8 +326,10 @@ describe('login com GitHub (OAuth + PKCE)', () => {
     });
   }
 
-  const finish = async (state: string, cookie: string, fetchImpl: typeof fetch) => {
-    const callback = new Request(`${ADMIN_ORIGIN}/auth/github/callback?code=codigo&state=${encodeURIComponent(state)}`, { headers: { cookie } });
+  const finish = async (state: string, cookie: string, fetchImpl: typeof fetch, issuer: string | null = 'https://github.com/login/oauth') => {
+    const query = new URLSearchParams({ code: 'codigo', state });
+    if (issuer !== null) query.set('iss', issuer);
+    const callback = new Request(`${ADMIN_ORIGIN}/auth/github/callback?${query.toString()}`, { headers: { cookie } });
     const response = await handleAuthCallback(callback, requestContext(), adminDeps(db, { fetchImpl }));
     return { response, location: response.headers.get('location') ?? '', setCookies: response.headers.getSetCookie() };
   };
@@ -384,6 +386,15 @@ describe('login com GitHub (OAuth + PKCE)', () => {
     expect(mismatch.location).toContain('erro=falha_no_login');
     const noCookie = await finish('qualquer', '', githubMock({ id: ADMIN_ID, login: 'dono', two_factor_authentication: true }));
     expect(noCookie.location).toContain('erro=sessao_expirada');
+    expect((await db.query('SELECT 1 FROM app.admin_sessions')).rows).toHaveLength(0);
+  });
+
+  it.each([null, 'https://github.com', 'https://outro-provedor.example'])('recusa emissor ausente ou incorreto: %s', async (issuer) => {
+    const { location, cookie } = await startLogin();
+    const fetchImpl = githubMock({ id: ADMIN_ID, login: 'dono', two_factor_authentication: true });
+    const result = await finish(location.searchParams.get('state') ?? '', cookie, fetchImpl, issuer);
+    expect(result.location).toContain('erro=falha_no_login');
+    expect(fetchImpl).not.toHaveBeenCalled();
     expect((await db.query('SELECT 1 FROM app.admin_sessions')).rows).toHaveLength(0);
   });
 
