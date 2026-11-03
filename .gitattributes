@@ -1,0 +1,4 @@
+# Normaliza fins de linha no repositório (scripts e SQL rodam em Linux no Netlify/CI).
+* text=auto eol=lf
+*.png binary
+*.ico binary
