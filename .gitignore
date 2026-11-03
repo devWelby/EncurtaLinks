@@ -1,0 +1,42 @@
+# Dependências
+node_modules/
+
+# Saídas de build
+dist/
+.netlify/
+*.tsbuildinfo
+
+# Testes e relatórios
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Bancos locais, dumps e cópias de dados (nunca versionar)
+.local-db/
+.e2e-db/
+.test-db/
+*.dump
+*.sql.gz
+*.backup
+backups/
+
+# Variáveis de ambiente com valores reais (versionar apenas .env.example)
+.env
+.env.*
+!.env.example
+
+# Logs e caches
+*.log
+npm-debug.log*
+.cache/
+.eslintcache
+.vite/
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
