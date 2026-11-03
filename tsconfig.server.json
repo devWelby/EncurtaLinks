@@ -12,9 +12,11 @@
     "apps/public/vite.config.ts",
     "apps/admin/vite.config.ts",
     "scripts",
-    "tests",
+    "tests/unit",
+    "tests/integration",
+    "tests/helpers",
+    "tests/setup",
     "vitest.config.ts",
-    "playwright.config.ts",
     "eslint.config.js"
   ]
 }

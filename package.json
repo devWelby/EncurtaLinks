@@ -13,7 +13,7 @@
     "build": "npm run build:public && npm run build:admin",
     "build:public": "vite build --config apps/public/vite.config.ts",
     "build:admin": "vite build --config apps/admin/vite.config.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.e2e.json --noEmit",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -5,11 +5,16 @@
  * anúncios SIMULADOS servidos localmente (nunca anúncios reais em testes/CI):
  * o espaço primário carrega um banner falso e o secundário aponta para um
  * script que falha (simula provedor fora do ar).
+ *
+ * Também sobe o "destino simulado" (127.0.0.1:8897): o Playwright mapeia o
+ * domínio destino-e2e.com.br para ele, e nenhum outro nome resolve.
  */
+import { createServer } from 'node:http';
 import { startLocalStack } from './lib/local-stack.ts';
 
 export const E2E_PUBLIC_PORT = 8898;
 export const E2E_ADMIN_PORT = 8899;
+export const E2E_DESTINATION_PORT = 8897;
 const publicOrigin = `http://localhost:${E2E_PUBLIC_PORT}`;
 
 const stack = await startLocalStack({
@@ -33,9 +38,23 @@ const stack = await startLocalStack({
   },
 });
 
-console.log(`[e2e] público ${stack.publicSite.origin} · painel ${stack.adminSite.origin}`);
+const destination = createServer((req, res) => {
+  // Ecoa apenas caracteres seguros: é uma página de teste, sem dados reais.
+  const host = (req.headers.host ?? '').replace(/[^A-Za-z0-9.:-]/g, '');
+  const path = (req.url ?? '/').replace(/[^A-Za-z0-9/?=&.%_-]/g, '');
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
+  res.end(`<!doctype html><html lang="pt-BR"><head><title>Destino simulado</title></head><body><h1>Destino simulado</h1><p id="host">${host}</p><p id="path">${path}</p></body></html>`);
+});
+await new Promise<void>((resolvePromise) => destination.listen(E2E_DESTINATION_PORT, '127.0.0.1', resolvePromise));
 
+console.log(`[e2e] público ${stack.publicSite.origin} · painel ${stack.adminSite.origin} · destino simulado http://127.0.0.1:${E2E_DESTINATION_PORT}`);
+
+let stopping = false;
 const shutdown = (): void => {
+  if (stopping) return;
+  stopping = true;
+  destination.closeAllConnections();
+  destination.close();
   void stack.stop().finally(() => process.exit(0));
 };
 process.on('SIGINT', shutdown);
