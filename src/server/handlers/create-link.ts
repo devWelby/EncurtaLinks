@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EXPIRY_OPTIONS, TURNSTILE_ACTIONS } from '../../shared/constants.ts';
 import type { CreateLinkResponse } from '../../shared/api.ts';
 import { findBlockingDomain } from '../domain/blocked-domains.ts';
-import { insertLinkWithUniqueSlug } from '../domain/links.ts';
+import { insertLinkWithUniqueSlug, SlugCollisionError } from '../domain/links.ts';
 import { recordDailyMetric } from '../domain/metrics.ts';
 import { getSettings } from '../domain/settings.ts';
 import { Errors, HttpError } from '../http/errors.ts';
@@ -106,6 +106,10 @@ export async function handleCreateLink(req: Request, ctx: RequestContext, deps: 
     };
     return jsonResponse(201, body);
   } catch (error) {
+    if (error instanceof SlugCollisionError) {
+      logger.error('slug_collision_exhausted', { requestId: ctx.requestId });
+      return apiErrorResponse(Errors.unavailable('Não foi possível gerar o link agora. Tente novamente.', 'slug_unavailable'), ctx, 'create_link_failed');
+    }
     return apiErrorResponse(error, ctx, 'create_link_failed');
   }
 }
