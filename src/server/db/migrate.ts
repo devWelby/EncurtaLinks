@@ -21,9 +21,7 @@ export async function loadMigrations(directory: string): Promise<MigrationFile[]
     const match = MIGRATION_NAME.exec(file);
     if (!match) throw new Error(`Nome de migração inválido: ${file} (use 0001_descricao.sql)`);
     // Fins de linha normalizados: o checksum não muda entre Windows (CRLF) e Linux (LF).
-    const sql = (await readFile(join(directory, file), 'utf8')).replace(/
-/g, '
-');
+    const sql = (await readFile(join(directory, file), 'utf8')).replace(/\r\n/g, '\n');
     migrations.push({
       version: match[1] ?? '',
       name: match[2] ?? '',

@@ -29,7 +29,7 @@ if (ssl === 'disable' && isProductionBuild) {
 const db = createDatabase({
   connectionString,
   ssl,
-  caCert: process.env.DATABASE_CA_CERT?.replace(/\n/g, '\n'),
+  caCert: process.env.DATABASE_CA_CERT?.replace(/\\n/g, '\n'),
   maxConnections: 1,
   connectionTimeoutMs: 15_000,
   queryTimeoutMs: 120_000,
