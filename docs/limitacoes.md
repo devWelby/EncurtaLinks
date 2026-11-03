@@ -4,11 +4,11 @@
 
 | Item | Implementado | Testado localmente | Validado em produção |
 |---|---|---|---|
-| Criação, página intermediária, tickets, denúncias, textos legais | sim | sim (integração + E2E) | **não** (nenhum deploy feito por este trabalho) |
+| Criação, página intermediária, tickets, denúncias, textos legais | sim | sim (integração + E2E; também no CI) | **não** (nenhum deploy feito por este trabalho) |
 | Painel (OAuth GitHub, sessões, CSRF, moderação, métricas, interruptores) | sim | sim; OAuth contra GitHub **simulado** | **não** |
 | Publicidade (consentimento, falhas, bloqueador, interruptor) | sim | sim, com anúncios **simulados** | **não** (depende de aprovação no Adsterra) |
 | Migrações, limites de uso, limpeza, persistência após "redeploy" | sim | sim (PostgreSQL real local) | **não** |
-| Ensaio de backup/restauração | sim | só o caminho de erro (sem `pg_dump` na máquina) | roda no CI |
+| Ensaio de backup/restauração | sim | só o caminho de erro (sem `pg_dump` na máquina) | aprovado no GitHub Actions (PostgreSQL 17), não contra o banco de produção |
 | Rotas e cabeçalhos do Netlify | sim (`netlify.toml`) | no emulador local | **não**: conferir com o checklist de [deploy.md](deploy.md) |
 | Rate limiting da plataforma Netlify | configurado | **não** reproduzível localmente | **não** |
 
