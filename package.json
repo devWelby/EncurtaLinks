@@ -24,7 +24,7 @@
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run check:secrets && npm run test:e2e"
   },
   "dependencies": {
-    "oauth4webapi": "3.8.8",
+    "oauth4webapi": "3.8.9",
     "pg": "8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
